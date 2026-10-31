@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#11140e">
+  <title>Iron &amp; Eagles — Waterloo, 1815</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <main id="app">
+    <canvas id="battlefield" aria-label="Top-down Napoleonic battlefield"></canvas>
+    <div class="grade"></div>
+
+    <div id="hud">
+      <header class="topbar">
+        <div class="brand">
+          <div class="crest" aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <path d="M32 4 41 15 55 14 51 28 60 37 48 45 45 59 32 52 19 59 16 45 4 37 13 28 9 14 23 15Z" fill="none" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M32 14c5 6 6 13 2 19l-2 12-2-12c-4-6-3-13 2-19Z" fill="currentColor" opacity=".9"/>
+              <path d="M22 32c5-4 9-3 12 2M42 32c-5-4-9-3-12 2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="32" cy="19" r="2" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="brand-type">
+            <span class="eyebrow">The Hundred Days</span>
+            <h1>Iron <i>&amp;</i> Eagles</h1>
+            <span class="place">Waterloo · 18 June 1815 · 15:40</span>
+          </div>
+        </div>
+
+        <section class="objective" id="objective">
+          <span class="obj-kicker">Objective</span>
+          <strong id="obj-title">Take the crossroads</strong>
+          <div class="obj-track"><i id="obj-fill"></i></div>
+          <span class="obj-status" id="obj-status">The farm is held by the Allies</span>
+        </section>
+
+        <div class="top-actions">
+          <button class="round-btn" id="sound-btn" aria-label="Toggle sound" title="Sound">
+            <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4Zm13-2c1.6 1.4 2.5 3.1 2.5 5S18.6 15.6 17 17M15 9.5c.9.6 1.4 1.5 1.4 2.5s-.5 1.9-1.4 2.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+          <button class="round-btn pause" id="pause-btn" aria-label="Pause" title="Pause (Space)">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3"/></svg>
+            <span class="pause-x hidden">▶</span>
+          </button>
+          <div class="speed-group" role="group" aria-label="Game speed">
+            <button data-speed="0.5">½</button>
+            <button data-speed="1" class="active">1×</button>
+            <button data-speed="2">2×</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="field-orders" id="field-orders">
+        <span class="order-label">Field orders</span>
+        <p id="order-text">Select a regiment, then right-click the field to advance. Hold the line and close the distance.</p>
+      </div>
+
+      <div class="message-stack" id="messages"></div>
+
+      <aside class="battle-card" id="battle-card">
+        <div class="battle-card-top">
+          <span>Army morale</span><b id="army-morale">Steady</b>
+        </div>
+        <div class="dual-bar"><i id="french-morale"></i><i id="british-morale"></i></div>
+        <div class="dual-labels"><span>French</span><span>Allied</span></div>
+        <div class="battle-meta"><span id="present-count">—</span><span>men engaged</span></div>
+      </aside>
+
+      <div class="crosshair-hint" id="hint">
+        <span class="mouse-icon"></span>
+        <span id="hint-text">Right-click to march</span>
+      </div>
+
+      <section class="selection-panel hidden" id="selection-panel">
+        <div class="sel-head">
+          <div class="sel-icon" id="sel-icon"></div>
+          <div>
+            <span class="sel-kicker" id="sel-kicker">Regiment of the line</span>
+            <h2 id="sel-name">1er Régiment de Ligne</h2>
+          </div>
+          <button class="close-sel" id="close-sel" aria-label="Deselect">×</button>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><span>Strength</span><b id="sel-strength">—</b></div>
+          <div class="stat"><span>Morale</span><b id="sel-morale">—</b></div>
+          <div class="stat"><span>Status</span><b id="sel-state">—</b></div>
+        </div>
+        <div class="meters">
+          <div class="meter"><i id="sel-strength-bar"></i></div>
+          <div class="meter morale"><i id="sel-morale-bar"></i></div>
+        </div>
+        <div class="sel-actions">
+          <button data-action="formation"><span class="key">F</span><span id="formation-text">Form line</span></button>
+          <button data-action="hold"><span class="key">H</span><span id="hold-text">Fire at will</span></button>
+          <button data-action="charge" class="danger"><span class="key">C</span><span>Bayonets</span></button>
+        </div>
+      </section>
+
+      <div class="army-strip" id="army-strip">
+        <div class="strip-label"><span>Armée du Nord</span><i>VI Corps</i></div>
+        <div class="roster" id="roster"></div>
+      </div>
+
+      <aside class="minimap-frame" id="minimap-frame">
+        <div class="minimap-head"><span>Field of battle</span><span id="clock">15:40</span></div>
+        <canvas id="minimap" width="260" height="156"></canvas>
+        <div class="minimap-legend"><span><i class="fr"></i>French</span><span><i class="gb"></i>Allied</span><span class="map-hint">M · map</span></div>
+      </aside>
+
+      <nav class="help-dock">
+        <button id="help-btn" aria-label="Controls">?</button>
+        <div class="help-pop hidden" id="help-pop">
+          <h3>Command</h3>
+          <p><b>Click / tap</b> select · drag for several</p>
+          <p><b>Right click / tap</b> march or attack</p>
+          <p><b>Right drag</b> march and dress the line</p>
+          <p><b>WASD</b> pan · <b>Wheel / pinch</b> zoom</p>
+          <p><b>Space</b> pause · <b>F</b> line / column</p>
+          <p><b>H</b> hold fire · <b>C</b> charge</p>
+          <p><b>1–6</b> select regiment</p>
+        </div>
+      </nav>
+
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <div class="pause-wash hidden" id="pause-wash">
+      <div class="pause-mark">❚❚</div>
+      <span>Battle suspended</span>
+      <small>Press space to continue</small>
+    </div>
+
+    <div class="result hidden" id="result">
+      <div class="result-inner">
+        <span class="result-kicker" id="result-kicker">The field is ours</span>
+        <h2 id="result-title">Waterloo</h2>
+        <p id="result-copy">The Allied centre has broken. The eagles stand upon the crossroads.</p>
+        <div class="result-stats" id="result-stats"></div>
+        <div class="result-actions">
+          <button id="replay-btn" class="primary">Fight again</button>
+          <button id="observe-btn">Remain on the field</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="loading-mark">✦</div>
+      <span>Deploying the army</span>
+    </div>
+  </main>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
