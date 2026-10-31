@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#17130f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2317130f'/%3E%3Ccircle cx='32' cy='32' r='25' fill='none' stroke='%23c9a55e' stroke-width='2'/%3E%3Ctext x='32' y='42' font-family='Georgia' font-size='24' fill='%23ead08a' text-anchor='middle'%3E95%3C/text%3E%3C/svg%3E" />
+    <meta name="description" content="Fields of Honour — a cinematic single-player Napoleonic skirmish with procedural animation and ragdoll physics, built with Three.js." />
+    <title>Fields of Honour — Waterloo 1815</title>
+    <script type="module" crossorigin src="./assets/index-BCjaTAk7.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CqFhqmSd.css">
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div id="vignette"></div>
+    <div id="grain"></div>
+    <div id="damage-flash"></div>
+    <div id="slowmo"></div>
+
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="objective-block">
+          <span class="eyebrow">WATERLOO · 18 JUNE 1815</span>
+          <span class="objective" id="objective">HOLD THE ORCHARD</span>
+          <span class="sub-objective" id="wave-label">WAVE I OF III</span>
+        </div>
+        <div class="compass-wrap">
+          <div class="compass" id="compass">
+            <span>W</span><span>NW</span><span>N</span><span>NE</span><span>E</span>
+          </div>
+          <div class="compass-needle" id="compass-needle"></div>
+          <div class="compass-objective" id="compass-objective">◆</div>
+        </div>
+        <div class="strength-block">
+          <span class="eyebrow">95TH RIFLES</span>
+          <span class="strength"><b id="men-count">8</b> MEN STANDING</span>
+          <span class="enemy-count"><b id="enemy-count">8</b> ENEMY IN THE FIELD</span>
+        </div>
+      </div>
+
+      <div id="crosshair" class="crosshair">
+        <i class="ch-top"></i><i class="ch-right"></i><i class="ch-bottom"></i><i class="ch-left"></i>
+        <span class="ch-dot"></span>
+        <span class="ch-ring"></span>
+      </div>
+      <div id="hitmarker" class="hitmarker"><i></i><i></i><i></i><i></i></div>
+      <div id="hit-text" class="hit-text"></div>
+
+      <div class="hud-bottom">
+        <div class="health-block">
+          <div class="health-head"><span>RESOLVE</span><span id="health-num">100</span></div>
+          <div class="health-bar"><i id="health-fill"></i><em id="health-delay"></em></div>
+          <div class="stance" id="stance">STANDING · IN THE OPEN</div>
+        </div>
+        <div class="controls-hint" id="controls-hint">
+          <span><b>WASD</b> move</span><span><b>SHIFT</b> sprint</span><span><b>RMB</b> aim</span>
+          <span><b>LMB</b> fire</span><span><b>R</b> reload</span><span><b>C</b> crouch</span>
+          <span><b>F</b> bayonet</span>
+        </div>
+        <div class="ammo-block">
+          <div class="weapon-name" id="weapon-name">BAKER RIFLE · 95TH</div>
+          <div class="ammo-line"><span id="ammo-count">1</span><span class="ammo-max">/ 1</span></div>
+          <div class="reload-bar"><i id="reload-fill"></i></div>
+          <div class="ammo-state" id="ammo-state">MUZZLE LOADED</div>
+        </div>
+      </div>
+
+      <div id="killfeed" class="killfeed"></div>
+      <div id="subtitle" class="subtitle"><span class="speaker" id="subtitle-speaker"></span><span id="subtitle-text"></span></div>
+      <div id="order-banner" class="order-banner"><span id="order-small">THE FRENCH ARE FORMING</span><b id="order-large">HOLD THE LINE</b></div>
+      <div class="mute" id="mute-indicator">SOUND OFF</div>
+    </div>
+
+    <div id="start-screen" class="screen start-screen">
+      <div class="start-inner">
+        <div class="title-rule"><span></span><i>95TH REGIMENT OF FOOT</i><span></span></div>
+        <h1>FIELDS<br /><em>OF HONOUR</em></h1>
+        <div class="start-sub">WATERLOO <span>·</span> 18 JUNE 1815</div>
+        <p class="start-copy">The orchard is the key to the farm. If it falls, the line falls with it. Stand with the 95th, load fast, aim true, and hold until the French break.</p>
+        <button id="start-button" class="start-button" aria-label="Start">Start</button>
+        <div class="start-controls">
+          <span><b>WASD</b> MARCH</span><span><b>SHIFT</b> RUN</span><span><b>RMB</b> AIM</span><span><b>LMB</b> FIRE</span><span><b>R</b> RELOAD</span><span><b>C</b> CROUCH</span><span><b>F</b> BAYONET</span>
+        </div>
+        <div class="start-foot"><span>HEADPHONES RECOMMENDED</span><span>PROCEDURAL BATTLE · THREE.JS</span></div>
+      </div>
+      <div class="start-side">
+        <div class="quote">“The bayonet has always been the weapon of the brave.”<span>— SIR THOMAS PICTON</span></div>
+        <div class="seal"><i>95</i><span>RIFLES</span></div>
+      </div>
+    </div>
+
+    <div id="pause-screen" class="screen pause-screen hidden">
+      <div class="pause-inner">
+        <span class="eyebrow">THE BATTLE WAITS</span>
+        <h2>PAUSED</h2>
+        <button id="resume-button" class="start-button small" aria-label="Resume">Resume</button>
+        <button id="restart-button" class="ghost-button" aria-label="Restart">Restart battle</button>
+        <div class="pause-tip">Click the field to return to the line.</div>
+      </div>
+    </div>
+
+    <div id="end-screen" class="screen end-screen hidden">
+      <div class="end-inner">
+        <span class="eyebrow" id="end-eyebrow">THE LINE IS BROKEN</span>
+        <h2 id="end-title">YOU FELL</h2>
+        <p id="end-copy">The orchard is lost. The French colours rise over La Haye Sainte.</p>
+        <div class="end-stats">
+          <div><b id="end-kills">0</b><span>FRENCH DOWN</span></div>
+          <div><b id="end-headshots">0</b><span>HEADSHOTS</span></div>
+          <div><b id="end-wave">I</b><span>WAVE REACHED</span></div>
+        </div>
+        <button id="again-button" class="start-button" aria-label="Play again">Play again</button>
+      </div>
+    </div>
+
+    <div id="loading-screen" class="loading-screen">
+      <div class="loading-mark">95</div>
+      <div class="loading-text">FORMING THE LINE</div>
+    </div>
+
+    <div id="touch-ui" class="touch-ui hidden">
+      <div id="joystick" class="joystick"><div class="joystick-ring"></div><div id="joystick-knob" class="joystick-knob"></div></div>
+      <div id="look-zone" class="look-zone"></div>
+      <button id="touch-fire" class="touch-btn fire" aria-label="Fire">FIRE</button>
+      <button id="touch-reload" class="touch-btn reload" aria-label="Reload">RELOAD</button>
+      <button id="touch-aim" class="touch-btn aim" aria-label="Aim">AIM</button>
+      <button id="touch-crouch" class="touch-btn crouch" aria-label="Crouch">CROUCH</button>
+    </div>
+
+    <div id="webgl-error" class="screen hidden">
+      <div class="pause-inner">
+        <span class="eyebrow">RENDERER UNAVAILABLE</span>
+        <h2>THE FIELD IS DARK</h2>
+        <p>This battle needs WebGL. Try a recent Chrome, Edge, Firefox, or Safari with hardware acceleration enabled.</p>
+      </div>
+    </div>
+
+  </body>
+</html>
